@@ -1,0 +1,123 @@
+프로젝트 루트에 .gitignore 파일을 만들어주세요:
+.gitignore (완전 버전)
+gitignore# =================================================================
+# 빌드 결과물 및 임시 파일들
+# =================================================================
+build/
+bin/
+out/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+CTestTestfile.cmake
+Testing/
+
+# =================================================================
+# vcpkg 관련 (중요!)
+# =================================================================
+vcpkg_installed/          # vcpkg가 설치한 라이브러리들 (용량 매우 큼!)
+.vcpkg-root              # vcpkg 루트 경로 캐시
+vcpkg-manifest-install.log
+vcpkg_installed.txt
+
+# =================================================================
+# Visual Studio 관련
+# =================================================================
+.vs/
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.VC.opendb
+*.vcxproj.user
+Debug/
+Release/
+x64/
+x86/
+ARM/
+ARM64/
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.exe
+*.dll
+*.obj
+*.iobj
+*.ipdb
+
+# =================================================================
+# Visual Studio Code 관련
+# =================================================================
+.vscode/
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/c_cpp_properties.json
+
+# =================================================================
+# 기타 IDE들
+# =================================================================
+.idea/                   # CLion, IntelliJ
+*.swp                    # Vim
+*.swo                    # Vim
+*~                       # Vim
+.DS_Store               # macOS
+Thumbs.db               # Windows
+Desktop.ini             # Windows
+
+# =================================================================
+# 컴파일러 및 링커 출력
+# =================================================================
+*.o
+*.lo
+*.la
+*.al
+*.libs
+*.so
+*.so.*
+*.dylib
+*.dll
+*.a
+*.lib
+*.exe
+*.out
+*.app
+
+# =================================================================
+# 로그 및 런타임 파일들
+# =================================================================
+*.log
+*.tmp
+*.temp
+core
+core.*
+*.stackdump
+*.pid
+
+# =================================================================
+# 개발자 개인 설정 파일들
+# =================================================================
+.env
+.env.local
+config.local.*
+settings.local.*
+user.conf
+local.conf
+
+# =================================================================
+# 패키지 매니저 캐시들
+# =================================================================
+.conan/
+conanbuildinfo.*
+conanfile.txt.user
+vcpkg.json.user

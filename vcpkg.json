@@ -1,0 +1,9 @@
+{
+  "name": "areaofinterest",
+  "version": "1.0.0",
+  "description": "AreaOfInterest SDL2 + Boost.Asio",
+  "dependencies": [
+    "sdl2",
+    "boost-asio"
+  ]
+}

@@ -1,5 +1,6 @@
 #include "Network.h"
 #include <iostream>
+#include <cmath>
 
 Network::Network(const std::string& Host, const uint16_t Port) : 
     mIsConnected(false),
@@ -76,32 +77,41 @@ void Network::Write(std::unique_ptr<Message> Message)
 
 void Network::PollMessage()
 {
-    std::list<std::unique_ptr<Message>> processMessage;
+    mProcessBatch.clear();
+    mProcessBatch.reserve(MAX_BATCH_SIZE);
     {
         std::lock_guard<std::mutex> lock(mRecvMutex);
-        for (auto iter = mRecvMessages.begin(); iter != mRecvMessages.end();)
+
+        auto iter = mRecvMessages.begin();
+        size_t batchCount = 0;
+
+        while (iter != mRecvMessages.end() && batchCount < MAX_BATCH_SIZE)
         {
             auto message = mRecvMessages.extract(iter++);
-            processMessage.push_back(std::move(message.value()));
+            mProcessBatch.push_back(std::move(message.value()));
+            batchCount++;
         }
     }
 
-    for (auto iter = processMessage.begin(); iter != processMessage.end(); ++iter)
+    for (auto& message : mProcessBatch)
     {
-        mMessageHandler(std::move(*iter));
+        mMessageHandler(std::move(message));
     }
 }
 
 void Network::ReadAsync()
 {
-    std::array<BYTE, 1024> data;
+    std::array<BYTE, READ_CHUNK_SIZE> data;
+    int canReadByte = std::min(MAX_BUFFER_SIZE - static_cast<int>(mRecvBufferCount), READ_CHUNK_SIZE);
 
     mSocket.async_read_some(
-        boost::asio::buffer(data, 1024),
+        boost::asio::buffer(data, canReadByte),
         [this, &data](boost::system::error_code error, std::size_t length)
         {
             if (!error)
             {
+                mTempMessages.clear();
+
                 std::copy(data.begin(), data.begin() + length, mRecvBuffer.begin() + mRecvBufferCount);
                 mRecvBufferCount += length;
 
@@ -121,18 +131,28 @@ void Network::ReadAsync()
                         break;
 
                     std::vector<BYTE> payload;
-                    payload.resize(header->mSize);
-                    std::copy(&mRecvBuffer[processLength], &mRecvBuffer[processLength + header->mSize], payload.begin());
+                    payload.reserve(header->mSize - sizeof(MessageHeader));
+
+                    std::size_t payloadSize = header->mSize - sizeof(MessageHeader);
+                    if (payloadSize > 0)
                     {
-                        std::lock_guard<std::mutex> lock(mRecvMutex);
-                        mRecvMessages.insert(std::make_unique<Message>(header->mId, header->mSize, payload));
+                        payload.assign(
+                            &mRecvBuffer[processLength + sizeof(MessageHeader)],
+                            &mRecvBuffer[processLength + header->mSize]);
                     }
+
+                    mTempMessages.insert(std::make_unique<Message>(header->mId, header->mSize, payload));
 
                     processLength += messageSize;
                 }
 
                 if (processLength > 0)
                 {
+                    {
+                        std::lock_guard<std::mutex> lock(mRecvMutex);
+                        mRecvMessages.merge(mTempMessages);
+                    }
+
                     std::size_t remainingLength = mRecvBufferCount - processLength;
                     if (remainingLength > 0)
                     {

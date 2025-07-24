@@ -71,28 +71,16 @@ void Game::Run()
 	// 네트워크 포함
 	while (mWorld->IsRunning())
 	{
-		mWorld->HandleEvents();
+		mWorld->HandleEvents();		// 입력 처리
 
 		mNetwork->PollMessage();	// 네트워크 메세지 처리
 
-		mWorld->Update();
+		mWorld->Update();			// 로직 업데이트
 
-		mWorld->Render();
+		mWorld->Render();			// 렌더링
 
-		mWorld->LimitFrameRate();
+		mWorld->LimitFrameRate();	// 60FPS
 	}
-
-	// 클라 전용
-	//while (mWorld->IsRunning())
-	//{
-	//	mWorld->HandleEvents();
-
-	//	mWorld->Update();
-
-	//	mWorld->Render();
-
-	//	//mWorld->LimitFrameRate();
-	//}
 
 	Stop();
 }

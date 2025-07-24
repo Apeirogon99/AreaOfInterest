@@ -69,6 +69,7 @@ add_executable(AreaOfInterestClient
     src/Client/Game.h
     src/Client/World.h
     src/Client/Network.h
+    src/Client/SDL2Utils.h
     src/Client/ClientMessageHandler.h
 
     # 소스 파일
@@ -77,6 +78,7 @@ add_executable(AreaOfInterestClient
     src/Client/Game.cpp
     src/Client/World.cpp
     src/Client/Network.cpp
+    src/Client/SDL2Utils.cpp
     src/Client/ClientMessageHandler.cpp
 )
 
@@ -98,6 +100,7 @@ add_executable(AreaOfInterestServer
     src/Server/Network.h
     src/Server/Session.h
     src/Server/Task.h
+    src/Server/AOI.h
     src/Server/ServerMessageHandler.h
 
     # 소스 파일
@@ -108,6 +111,7 @@ add_executable(AreaOfInterestServer
     src/Server/Network.cpp
     src/Server/Session.cpp
     src/Server/Task.cpp
+    src/Server/AOI.cpp
     src/Server/ServerMessageHandler.cpp
 )
 

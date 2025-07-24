@@ -52,10 +52,10 @@ public:
     template<typename T>
     static const T* Deserialize(const std::vector<BYTE>& Data, uint16_t Size)
     {
-        if (Data.size() < Size)
+        if (Data.size() != Size - sizeof(MessageHeader))
         {
             return nullptr;
         }
-        return reinterpret_cast<const T*>(&Data[sizeof(MessageHeader)]);
+        return reinterpret_cast<const T*>(Data.data());
     }
 };

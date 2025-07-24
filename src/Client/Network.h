@@ -62,7 +62,9 @@ private:
     // Read, Write
     std::array<BYTE, 8192> mRecvBuffer;
     std::size_t mRecvBufferCount;
+    std::unordered_set<std::unique_ptr<Message>> mTempMessages;
     std::unordered_set<std::unique_ptr<Message>> mRecvMessages;
+    std::vector<std::unique_ptr<Message>> mProcessBatch;
     std::mutex mRecvMutex;
 
     std::queue<std::unique_ptr<Message>> mWriteQueue;
@@ -72,4 +74,9 @@ private:
     std::function<void(std::unique_ptr<Message>)> mMessageHandler;
     std::function<void()> mConnectHandler;
     std::function<void(boost::system::error_code&)> mDisconnectHandler;
+
+private:
+    static constexpr size_t MAX_BATCH_SIZE = 50;
+    static constexpr size_t MAX_BUFFER_SIZE = 8192;
+    static constexpr size_t READ_CHUNK_SIZE = 1024;
 };

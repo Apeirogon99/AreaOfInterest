@@ -2,6 +2,7 @@
 #include <functional>
 #include <map>
 
+#include "AOI.h"
 #include "Task.h"
 #include "Session.h"
 
@@ -24,20 +25,26 @@ public:
 	inline bool IsRunning() const { return mIsRunning; }
 
 public:
-	void CreateEntity(const std::shared_ptr<Session>& Session);
-	void ToggleWalkeable(int GridX, int GridY);
-
-	void PathFind(Entity* Entity, Node* DestNode);
-	void PathRefind();
+	void EnterWorld(uint32_t SessionId);
+	void LeaveWorld(uint32_t SessionId);
+	void PathFind(const uint32_t SessionId, const int DestGridX, const int DestGridY);
 
 public:
-	void SetMessageHandler(std::function<void(std::unique_ptr<Message>)> Handler)
+	void SetDirectMessageHandler(std::function<void(const uint32_t SessionId, std::unique_ptr<Message>)> Handler)
 	{
-		mMessageHandler = Handler;
+		mDirectMessageHandler = Handler;
+	}
+
+	void SetBoradcastMessageHandler(std::function<void(const std::unordered_set<uint32_t>&, std::unique_ptr<Message>)> Handler)
+	{
+		mBoradcastMessageHandler = Handler;
 	}
 
 public:
 	void Update(float DeltaTime);
+
+private:
+	int GetNextEntityId();
 
 public:
 	bool mIsRunning;
@@ -47,7 +54,9 @@ public:
 
 	std::unique_ptr<PathFinding> mPathFinder;
 	std::unique_ptr<Grid> mMap;
+	std::unique_ptr<AOI> mAOI;
 
 	// Handler
-	std::function<void(std::unique_ptr<Message>)> mMessageHandler;
+	std::function<void(const uint32_t, std::unique_ptr<Message>)> mDirectMessageHandler;
+	std::function<void(const std::unordered_set<uint32_t>&, std::unique_ptr<Message>)> mBoradcastMessageHandler;
 };

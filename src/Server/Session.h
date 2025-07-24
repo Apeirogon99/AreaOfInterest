@@ -58,4 +58,8 @@ private:
     std::function<void(const std::shared_ptr<Session>&, std::unique_ptr<Message>)> mMessageHandler;
     std::function<void(const std::shared_ptr<Session>&)> mConnectHandler;
     std::function<void(const std::shared_ptr<Session>&, boost::system::error_code&)> mDisconnectHandler;
+
+private:
+    static constexpr size_t MAX_BUFFER_SIZE = 8192;
+    static constexpr size_t READ_CHUNK_SIZE = 1024;
 };

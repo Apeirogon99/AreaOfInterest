@@ -34,10 +34,11 @@ void Session::Write(std::unique_ptr<Message> Message)
 
 void Session::ReadAsync()
 {
-    std::array<BYTE, 1024> data;
+    std::array<BYTE, READ_CHUNK_SIZE> data;
+    int canReadByte = std::min(MAX_BUFFER_SIZE - static_cast<int>(mRecvBufferCount), READ_CHUNK_SIZE);
 
     mSocket.async_read_some(
-        boost::asio::buffer(data, 1024),
+        boost::asio::buffer(data, canReadByte),
         [this, &data](boost::system::error_code error, std::size_t length)
         {
             if (!error)
@@ -61,10 +62,17 @@ void Session::ReadAsync()
                         break;
 
                     std::vector<BYTE> payload;
-                    payload.resize(header->mSize);
-                    std::copy(&mRecvBuffer[processLength], &mRecvBuffer[processLength + header->mSize], payload.begin());
-                    std::unique_ptr<Message> message = std::make_unique<Message>(header->mId, header->mSize, payload);
-                    mMessageHandler(shared_from_this(), std::move(message));
+                    payload.reserve(header->mSize - sizeof(MessageHeader));
+
+                    std::size_t payloadSize = header->mSize - sizeof(MessageHeader);
+                    if (payloadSize > 0)
+                    {
+                        payload.assign(
+                            &mRecvBuffer[processLength + sizeof(MessageHeader)],
+                            &mRecvBuffer[processLength + header->mSize]);
+                    }
+
+                    mMessageHandler(shared_from_this(), std::make_unique<Message>(header->mId, header->mSize, payload));
 
                     processLength += messageSize;
                 }

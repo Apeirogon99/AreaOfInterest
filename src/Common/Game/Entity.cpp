@@ -2,11 +2,15 @@
 #include <algorithm>
 
 Entity::Entity(const uint32_t ObjectId, const Vector2f& Position) :
-	mObjectId(ObjectId), mPosition(Position), mVelocity(), mMoveSpeed(100.0f),
-	mIntervalMoveSync(0.25f), mLastMoveSync(0.0f),
+	mObjectId(ObjectId), mPosition(Position), mVelocity(), mMoveSpeed(30.0f),
+	mIsAI(false), mIntervalMoveSync(0.25f), mLastMoveSync(0.0f), mSessionId(0),
 	mCorrectionStartPosition(), mCorrectionEndPosition(), mIsCorrection(false), mCorrectionTime(0.0f)
 {
 
+}
+
+Entity::~Entity()
+{
 }
 
 void Entity::MoveTowardsNextPath(float DeltaTime)
@@ -69,15 +73,6 @@ void Entity::PositionCorrection(float DeltaTime)
 		float smoothT = t * t * (3.0f - 2.0f * t);
 		mPosition = Lerp(mCorrectionStartPosition, mCorrectionEndPosition, smoothT);
 	}
-}
-
-Node* Entity::GetDestinationNode()
-{
-	if (mPath.empty())
-	{
-		return nullptr;
-	}
-	return mPath.front();
 }
 
 void Entity::RecoveyIntervalMoveSync()

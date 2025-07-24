@@ -26,28 +26,31 @@ bool Game::Initialize()
 		return false;
 	}
 
-	mWorld->SetMessageHandler([&](std::unique_ptr<Message> Message)
+	mWorld->SetDirectMessageHandler([&](const uint32_t SessionId, std::unique_ptr<Message> Message)
 		{
-			//std::cout << "Writed" << std::endl;
-			mNetwork->Broadcast(std::move(Message));
+			mNetwork->Direct(SessionId, std::move(Message));
+		});
+
+	mWorld->SetBoradcastMessageHandler([&](const std::unordered_set<uint32_t>& SessionIds, std::unique_ptr<Message> Message)
+		{
+			mNetwork->Broadcast(SessionIds, std::move(Message));
 		});
 
 	mNetwork->SetMessageHandler([&](const std::shared_ptr<Session>& Session, std::unique_ptr<Message> Message)
 		{
-			//std::cout << "Received" << std::endl;
 			ServerMessageHandler::ProcessMessage(mWorld, Session, std::move(Message));
 		});
 
 	mNetwork->SetConnectHandler([&](const std::shared_ptr<Session>& Session)
 		{
 			std::cout << "Connected to client" << std::endl;
-			mWorld->CreateEntity(Session);
+			mWorld->PushTask(0, mWorld, &World::EnterWorld, Session->GetSessionId());
 		});
 
 	mNetwork->SetDisconnectHandler([&](const std::shared_ptr<Session>& Session, boost::system::error_code ec)
 		{
 			std::cout << "Disconnected from server : " << ec.message() << std::endl;
-			
+			mWorld->PushTask(0, mWorld, &World::LeaveWorld, Session->GetSessionId());
 		});
 
 	mNetwork->AcceptAsync();

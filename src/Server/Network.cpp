@@ -1,5 +1,6 @@
 #include "Network.h"
 #include <iostream>
+#include <set>
 
 Network::Network(const uint16_t Port) : 
     mIsRunning(false),
@@ -32,20 +33,43 @@ void Network::Destroy()
 {
     mAcceptor.close();
     std::lock_guard<std::mutex> lock(mClientMutex);
-    for (std::shared_ptr<Session>& client : mClients)
+    for (auto sessionIter : mClients)
     {
-        client->Close();
+        const std::shared_ptr<Session>& session = sessionIter.second;
+        if (session)
+        {
+            session->Close();
+        }
     }
     mClients.clear();
 }
 
-void Network::Broadcast(std::unique_ptr<Message> Message)
+void Network::Direct(const uint32_t SessionId, std::unique_ptr<Message> Message)
 {
     std::lock_guard<std::mutex> lock(mClientMutex);
-    for (const std::shared_ptr<Session>& client : mClients)
+    auto sessionIter = mClients.find(SessionId);
+    if (sessionIter != mClients.end())
     {
-        client->Write(std::move(Message));
+        sessionIter->second->Write(std::move(Message));
     }
+}
+
+void Network::Broadcast(const std::unordered_set<uint32_t>& SessionIds, std::unique_ptr<Message> Message)
+{
+    std::lock_guard<std::mutex> lock(mClientMutex);
+    for (auto sessionId : SessionIds)
+    {
+        auto sessionIter = mClients.find(sessionId);
+        if (sessionIter != mClients.end())
+        {
+            sessionIter->second->Write(std::move(Message));
+        }
+    }
+
+    //for (auto client : mClients)
+    //{
+    //    client.second->Write(std::move(Message));
+    //}
 }
 
 void Network::AcceptAsync()
@@ -57,14 +81,16 @@ void Network::AcceptAsync()
             {
                 static uint32_t SESSION_ID = 1;
 
-                std::shared_ptr<Session> newClient = std::make_shared<Session>(std::move(socket), SESSION_ID++);
+                std::shared_ptr<Session> newClient = std::make_shared<Session>(std::move(socket), SESSION_ID);
                 newClient->SetMessageHandler(mMessageHandler);
                 newClient->SetConnectHandler(mConnectHandler);
                 newClient->SetDisconnectHandler(mDisconnectHandler);
 
                 mConnectHandler(newClient);
-                mClients.emplace_back(newClient);
+                mClients.insert({ SESSION_ID, newClient });
                 newClient->Start();
+
+                SESSION_ID++;
             }
             else
             {

@@ -23,7 +23,8 @@ public:
     void AcceptAsync();
 
 public:
-    void Broadcast(std::unique_ptr<Message> Message);
+    void Direct(const uint32_t SessionId, std::unique_ptr<Message> Message);
+    void Broadcast(const std::unordered_set<uint32_t>& SessionIds, std::unique_ptr<Message> Message);
 
 public:
     inline bool IsRunning() const { return mIsRunning; }
@@ -56,7 +57,7 @@ private:
     uint16_t mPort;
 
     // Session
-    std::vector<std::shared_ptr<Session>> mClients;
+    std::unordered_map<uint32_t, std::shared_ptr<Session>> mClients;
     std::mutex mClientMutex;
 
     // Handler

@@ -7,7 +7,6 @@
 
 void Handle_INVALID(uint16_t Id, uint16_t Size, const std::vector<BYTE>& Data);
 void Handle_PKT_C2S_PATH_FINDING(const std::unique_ptr<World>& World, const std::shared_ptr<Session>& Session, const C2S_PATH_FINDING* Protocol);
-void Handle_PKT_C2S_TOGGLE_WALKABLE(const std::unique_ptr<World>& World, const std::shared_ptr<Session>& Session, const C2S_TOGGLE_WALKABLE* Protocol);
 
 class ServerMessageHandler
 {
@@ -22,9 +21,6 @@ public:
 		{
 		case EMessageId::PKT_C2S_PATH_FINDING:
 			Handle_PKT_C2S_PATH_FINDING(World, Session, MessageSerializer::Deserialize<C2S_PATH_FINDING>(data, size));
-			break;
-		case EMessageId::PKT_C2S_TOGGLE_WALKABLE:
-			Handle_PKT_C2S_TOGGLE_WALKABLE(World, Session, MessageSerializer::Deserialize<C2S_TOGGLE_WALKABLE>(data, size));
 			break;
 		default:
 			Handle_INVALID(id, size, data);

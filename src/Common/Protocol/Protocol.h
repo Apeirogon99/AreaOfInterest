@@ -2,86 +2,64 @@
 #include <vector>
 #include "Common/Math/Vector2f_NetQuantize.h"
 
-enum class EMessageId : unsigned __int16
+enum EMessageId : unsigned __int16
 {
 	None,
 	PKT_S2C_SPAWN_ENTITY,
-	PKT_S2C_LOAD_MAP,
 
+	PKT_S2C_APPEAR_ENTITY,
+	PKT_S2C_DISAPPEAR_ENTITY,
+	
 	PKT_C2S_PATH_FINDING,
 	PKT_S2C_PATH_FINDING,
-	PKT_S2C_PATH_REFINDING,
-
+	
 	PKT_S2C_POSITION_SYNC,
-
-	PKT_C2S_TOGGLE_WALKABLE,
-	PKT_S2C_TOGGLE_WALKABLE,
 };
 
-struct Waypoint
+struct GridPoint
 {
-	int GridX;
-	int GridY;
+	int32_t		X;
+	int32_t		Y;
 };
 
 struct S2C_SPAWN_ENTITY
 {
-	int ObjectId;
-	int GridX;
-	int GridY;
+	int32_t		ObjectId;
+	GridPoint	SpawnGridPoint;
 };
 
-struct S2C_LOAD_MAP
+struct S2C_APPEAR_ENTITY
 {
-	
+	uint32_t	TimeStamp;
+	int32_t		ObjectId;
+	Vector2f	EntityPosition;
+};
+
+struct S2C_DISAPPEAR_ENTITY
+{
+	int32_t		ObjectId;
 };
 
 struct C2S_PATH_FINDING
 {
-	unsigned __int32 TimeStamp;
-	int DestGridX;
-	int DestGridY;
+	uint32_t	TimeStamp;
+	GridPoint	DestGridPoint;
 };
 
 struct S2C_PATH_FINDING
 {
-	unsigned __int32 TimeStamp;
-	int ObjectId;
-	float EntityPositionX;
-	float EntityPositionY;
+	uint32_t	TimeStamp;
+	int32_t		ObjectId;
+	Vector2f	EntityPosition;
 
-	int PathCount;
-	Waypoint Path[50];
-};
-
-struct S2C_PATH_REFINDING
-{
-	unsigned __int32 TimeStamp;
-	int ObjectId;
-
-	int PathCount;
-	Waypoint Path[50];
+	int32_t		PathCount;
+	GridPoint	Path[50];
 };
 
 struct S2C_POSITION
 {
-	unsigned __int32 TimeStamp;
-	int ObjectId;
-	float EntityPositionX;
-	float EntityPositionY;
-	int NextGridX;
-	int NextGridY;
-};
-
-struct C2S_TOGGLE_WALKABLE
-{
-	int GridX;
-	int GridY;
-};
-
-struct S2C_TOGGLE_WALKABLE
-{
-	int GridX;
-	int GridY;
-	bool IsWalkable;
+	uint32_t	TimeStamp;
+	int32_t		ObjectId;
+	Vector2f	EntityPosition;
+	GridPoint	DestGridPoint;
 };

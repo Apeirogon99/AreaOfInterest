@@ -44,9 +44,8 @@ public:
 	uint64_t mFrequency;
 	uint64_t mLastTime;
 
-	std::map<uint32_t, std::unique_ptr<Entity>> mEntitys;
-	std::map<uint32_t, std::unique_ptr<Entity>> mServerEntitys;
 	uint32_t mLocalEntityId;
+	std::map<uint32_t, std::unique_ptr<Entity>> mEntitys;
 
 	std::unique_ptr<PathFinding> mPathFinder;
 	std::unique_ptr<Grid> mMap;

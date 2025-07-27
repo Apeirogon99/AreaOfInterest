@@ -18,13 +18,13 @@ World::~World()
 bool World::Initialize()
 {
 	// 단순하게 클라와 같다고 생각
-	Vector2f gridSize = Vector2f({ 600.0f, 600.0f });
+	Vector2f worldSize = Vector2f({ 600.0f, 600.0f });
 	float nodeSize = 20.0f;
-	mMap = std::make_unique<Grid>(gridSize, nodeSize);
+	mMap = std::make_unique<Grid>(worldSize, nodeSize);
 
 	mPathFinder = std::make_unique<PathFinding>();
 
-	mAOI = std::make_unique<AOI>();
+	mAOI = std::make_unique<AOI>(worldSize, nodeSize, 5);
 
 	// 더미 봇 생성
 	{
@@ -32,7 +32,7 @@ bool World::Initialize()
 		std::uniform_int_distribution<int> gridX(0, mMap->mGridSizeX - 1);
 		std::uniform_int_distribution<int> gridY(0, mMap->mGridSizeY - 1);
 
-		for (int count = 0; count < 1; ++count)
+		for (int count = 1000; count < 1100; ++count)
 		{
 			int entityId = GetNextEntityId();
 			const std::unique_ptr<Node>& node = mMap->mGrid[gridX(rd)][gridY(rd)];
@@ -42,6 +42,7 @@ bool World::Initialize()
 			entity->mSessionId = count;
 
 			mEntitys.insert({ entityId, std::move(entity) });
+			mSessionToEntity.insert({ count, entityId });
 		}
 	}
 
@@ -164,7 +165,7 @@ void World::PathFind(const uint32_t SessionId, const int DestGridX, const int De
 	}
 
 	auto message = MessageSerializer::Serialize(EMessageId::PKT_S2C_PATH_FINDING, protocol);
-	mDirectMessageHandler(SessionId, std::move(message));
+	mBoradcastMessageHandler(entity->mViewer, std::move(message));
 }
 
 void World::Update(float DeltaTime)
@@ -186,8 +187,8 @@ void World::Update(float DeltaTime)
 		if (entity->mIsAI && entity->mPath.empty())
 		{
 			std::random_device rd;
-			std::uniform_real_distribution<float> positionX(-100.0f, 100.0f);
-			std::uniform_real_distribution<float> positionY(-100.0f, 100.0f);
+			std::uniform_real_distribution<float> positionX(-50.0f, 50.0f);
+			std::uniform_real_distribution<float> positionY(-50.0f, 50.0f);
 
 			const Vector2f& entityPosition = entity->mPosition;
 			const Vector2f destPosition = entityPosition - Vector2f({ positionX(rd), positionY(rd) });
@@ -206,8 +207,27 @@ void World::Update(float DeltaTime)
 					protocol.Path[protocol.PathCount++] = GridPoint({ node->mGridX, node->mGridY });
 				}
 
+#if USE_AOI
+				std::unordered_set<uint32_t> nearViewers;
+				for (uint32_t monitorEntityId : entity->mMonitor)
+				{
+					const std::unique_ptr<Entity>& viewerEntity = mEntitys[monitorEntityId];
+					float distance = entity->mPosition.distance(viewerEntity->mPosition);
+
+					if (distance <= 50.0f)
+					{
+						nearViewers.insert(viewerEntity->mSessionId);
+					}
+				}
+
+				auto message = MessageSerializer::Serialize(EMessageId::PKT_S2C_PATH_FINDING, protocol);
+				mBoradcastMessageHandler(nearViewers, std::move(message));
+#else
 				auto message = MessageSerializer::Serialize(EMessageId::PKT_S2C_PATH_FINDING, protocol);
 				mBoradcastMessageHandler(entity->mViewer, std::move(message));
+#endif // USE_AOI
+
+				
 			}
 		}
 	}
@@ -217,6 +237,78 @@ void World::Update(float DeltaTime)
 	//				 가시거리 처리				//
 	//											//
 	//////////////////////////////////////////////
+
+#if USE_AOI
+	/// <summary>
+	/// 그리드 형식으로 검사
+	/// </summary>
+	mAOI->PlaceEntityInGroup(mEntitys);
+
+	for (auto entityIter = mEntitys.begin(); entityIter != mEntitys.end(); ++entityIter)
+	{
+		const uint32_t entityId = entityIter->first;
+		const std::unique_ptr<Entity>& entity = entityIter->second;
+
+		std::unordered_set<uint32_t> visibleEntities;
+		std::list<NodeGroup*> groups = mAOI->GetNodeGroupInRange(entity->mPosition, 150.0f);
+		for (NodeGroup* group : groups)
+		{
+			for (const uint32_t otherEntityId : group->mEntityIds)
+			{
+				if (entityId == otherEntityId) continue;
+
+				const std::unique_ptr<Entity>& otherEntity = mEntitys[otherEntityId];
+				float distance = entity->mPosition.distance(otherEntity->mPosition);
+				if (distance < 150.0f)
+				{
+					visibleEntities.insert(otherEntity->mSessionId);
+
+					if (entity->mViewer.find(otherEntity->mSessionId) == entity->mViewer.end())
+					{
+						entity->mViewer.insert(otherEntity->mSessionId);
+						otherEntity->mMonitor.insert(entityId);
+
+						S2C_APPEAR_ENTITY protocol;
+						protocol.TimeStamp = Time::GetCurrentTimeMs();
+						protocol.ObjectId = entityId;
+						protocol.EntityPosition = entity->mPosition;
+
+						auto message = MessageSerializer::Serialize(EMessageId::PKT_S2C_APPEAR_ENTITY, protocol);
+						mDirectMessageHandler(otherEntity->mSessionId, std::move(message));
+					}
+				}
+			}
+		}
+
+		auto otherSessionIdIter = entity->mViewer.begin();
+		while (otherSessionIdIter != entity->mViewer.end())
+		{
+			const uint32_t otherSessionId = *otherSessionIdIter;
+			
+			if (otherSessionId != entity->mSessionId && visibleEntities.find(otherSessionId) == visibleEntities.end())
+			{
+				const uint32_t otherEntityId = mSessionToEntity[otherSessionId];
+				const std::unique_ptr<Entity>& otherEntity = mEntitys[otherEntityId];
+
+				S2C_DISAPPEAR_ENTITY protocol;
+				protocol.ObjectId = entityId;
+
+				auto message = MessageSerializer::Serialize(EMessageId::PKT_S2C_DISAPPEAR_ENTITY, protocol);
+				mDirectMessageHandler(otherEntity->mSessionId, std::move(message));
+
+				otherEntity->mMonitor.erase(entityId);
+				otherSessionIdIter = entity->mViewer.erase(otherSessionIdIter);
+			}
+			else
+			{
+				++otherSessionIdIter;
+			}
+		}
+	}
+#else
+	//<summary>
+	//2중 for문으로 검사
+	//</summary>
 	for (auto entityIter = mEntitys.begin(); entityIter != mEntitys.end(); ++entityIter)
 	{
 		const uint32_t entityId = entityIter->first;
@@ -262,19 +354,93 @@ void World::Update(float DeltaTime)
 			}
 		}
 	}
+#endif // USE_AOI
 
 	//////////////////////////////////////////////
 	//											//
 	//				 동기화 처리					//
 	//											//
 	//////////////////////////////////////////////
+
+#if USE_AOI
+	//<summary>
+	// 거리에 따라 정보 및 주기 조절
+	//</summary>
 	for (auto iter = mEntitys.begin(); iter != mEntitys.end(); ++iter)
 	{
 		const uint32_t entityId = iter->first;
 		const std::unique_ptr<Entity>& entity = iter->second;
 
-		entity->mLastMoveSync += DeltaTime;
-		if (entity->mLastMoveSync > entity->mIntervalMoveSync)
+		entity->mLastNearSync += DeltaTime;
+		entity->mLastFarSync += DeltaTime;
+
+		if (entity->mLastNearSync > 0.25f)
+		{
+			S2C_POSITION protocol;
+			protocol.TimeStamp = Time::GetCurrentTimeMs();
+			protocol.ObjectId = entityId;
+			protocol.EntityPosition = entity->mPosition;
+			if (!entity->mPath.empty())
+			{
+				Node* destNode = entity->mPath.back();
+				protocol.DestGridPoint = { destNode->mGridX, destNode->mGridY };
+			}
+
+			std::unordered_set<uint32_t> nearViewers;
+			for (uint32_t monitorEntityId : entity->mMonitor)
+			{
+				const std::unique_ptr<Entity>& viewerEntity = mEntitys[monitorEntityId];
+				float distance = entity->mPosition.distance(viewerEntity->mPosition);
+
+				if (distance <= 50.0f)
+				{
+					nearViewers.insert(viewerEntity->mSessionId);
+				}
+			}
+
+			auto message = MessageSerializer::Serialize(EMessageId::PKT_S2C_POSITION_SYNC, protocol);
+			mBoradcastMessageHandler(nearViewers, std::move(message));
+
+			entity->mLastNearSync = 0.0f;
+		}
+		
+		if (entity->mLastFarSync > 1.0f)
+		{
+			S2C_POSITION protocol;
+			protocol.TimeStamp = Time::GetCurrentTimeMs();
+			protocol.ObjectId = entityId;
+			protocol.EntityPosition = entity->mPosition;
+
+			std::unordered_set<uint32_t> farViewers;
+			for (uint32_t monitorEntityId : entity->mMonitor)
+			{
+				const std::unique_ptr<Entity>& viewerEntity = mEntitys[monitorEntityId];
+				float distance = entity->mPosition.distance(viewerEntity->mPosition);
+
+				if (50.0f < distance && distance <= 150.0f)
+				{
+					farViewers.insert(viewerEntity->mSessionId);
+				}
+			}
+
+			auto message = MessageSerializer::Serialize(EMessageId::PKT_S2C_POSITION_SYNC, protocol);
+			mBoradcastMessageHandler(farViewers, std::move(message));
+
+			entity->mLastFarSync = 0.0f;
+		}
+	}
+
+#else
+	//<summary>
+	// 모든 정보를 0.25초마다 보내기
+	//</summary>
+	for (auto iter = mEntitys.begin(); iter != mEntitys.end(); ++iter)
+	{
+		const uint32_t entityId = iter->first;
+		const std::unique_ptr<Entity>& entity = iter->second;
+
+		entity->mSingleLastSync += DeltaTime;
+		if (entity->mSingleLastSync > 0.25f)
 		{
 			S2C_POSITION protocol;
 			protocol.TimeStamp = Time::GetCurrentTimeMs();
@@ -289,9 +455,10 @@ void World::Update(float DeltaTime)
 			auto message = MessageSerializer::Serialize(EMessageId::PKT_S2C_POSITION_SYNC, protocol);
 			mBoradcastMessageHandler(entity->mViewer, std::move(message));
 
-			entity->mLastMoveSync = 0.0f;
+			entity->mSingleLastSync = 0;
 		}
 	}
+#endif // USE_AOI
 
 }
 

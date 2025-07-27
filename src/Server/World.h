@@ -11,6 +11,8 @@
 #include "Common/AStar/PathFinding.h"
 #include "Common/Protocol/Message.h"
 
+#define USE_AOI 0
+
 class World : public TaskQueue
 {
 public:

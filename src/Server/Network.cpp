@@ -65,11 +65,6 @@ void Network::Broadcast(const std::unordered_set<uint32_t>& SessionIds, std::uni
             sessionIter->second->Write(std::move(Message));
         }
     }
-
-    //for (auto client : mClients)
-    //{
-    //    client.second->Write(std::move(Message));
-    //}
 }
 
 void Network::AcceptAsync()

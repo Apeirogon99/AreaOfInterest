@@ -2,6 +2,8 @@
 #include <iostream>
 #include <cmath>
 
+std::unordered_map<uint16_t, size_t> gProcessMessageCount;
+
 Network::Network(const std::string& Host, const uint16_t Port) : 
     mIsConnected(false),
     mContext(), mSocket(mContext), mWorkGuard(boost::asio::make_work_guard(mContext)), mHost(Host), mPort(Port),
@@ -95,24 +97,37 @@ void Network::PollMessage()
 
     for (auto& message : mProcessBatch)
     {
+        gProcessMessageCount[message->GetId()] += 1;
         mMessageHandler(std::move(message));
     }
 }
 
 void Network::ReadAsync()
 {
-    std::array<BYTE, READ_CHUNK_SIZE> data;
+    if (mRecvBufferCount >= MAX_BUFFER_SIZE)
+    {
+        boost::system::error_code code = boost::asio::error::no_buffer_space;
+        mDisconnectHandler(code);
+        return;
+    }
+
     int canReadByte = std::min(MAX_BUFFER_SIZE - static_cast<int>(mRecvBufferCount), READ_CHUNK_SIZE);
+    if (canReadByte <= 0)
+    {
+        boost::system::error_code code = boost::asio::error::no_buffer_space;
+        mDisconnectHandler(code);
+        return;
+    }
 
     mSocket.async_read_some(
-        boost::asio::buffer(data, canReadByte),
-        [this, &data](boost::system::error_code error, std::size_t length)
+        boost::asio::buffer(mReadBuffer, canReadByte),
+        [this](boost::system::error_code error, std::size_t length)
         {
             if (!error)
             {
                 mTempMessages.clear();
 
-                std::copy(data.begin(), data.begin() + length, mRecvBuffer.begin() + mRecvBufferCount);
+                std::copy(mReadBuffer.begin(), mReadBuffer.begin() + length, mRecvBuffer.begin() + mRecvBufferCount);
                 mRecvBufferCount += length;
 
                 std::size_t processLength = 0;
@@ -120,7 +135,7 @@ void Network::ReadAsync()
                 std::size_t messageSize = 0;
                 while (true)
                 {
-                    dataLength = length - processLength;
+                    dataLength = mRecvBufferCount - processLength;
 
                     if (dataLength < sizeof(MessageHeader))
                         break;

@@ -16,6 +16,8 @@ enum EMessageId : unsigned __int16
 	PKT_S2C_POSITION_SYNC,
 };
 
+const char* MessageIdToString(unsigned __int16 Id);
+
 struct GridPoint
 {
 	int32_t		X;

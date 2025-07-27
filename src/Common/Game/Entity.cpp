@@ -2,8 +2,8 @@
 #include <algorithm>
 
 Entity::Entity(const uint32_t ObjectId, const Vector2f& Position) :
-	mObjectId(ObjectId), mPosition(Position), mVelocity(), mMoveSpeed(30.0f),
-	mIsAI(false), mIntervalMoveSync(0.25f), mLastMoveSync(0.0f), mSessionId(0),
+	mObjectId(ObjectId), mPosition(Position), mVelocity(), mMoveSpeed(50.0f),
+	mIsAI(false), mLastNearSync(0.0f), mSingleLastSync(0.0f), mLastFarSync(0.0f), mNodeGroupId(UINT32_MAX), mSessionId(0),
 	mCorrectionStartPosition(), mCorrectionEndPosition(), mIsCorrection(false), mCorrectionTime(0.0f)
 {
 
@@ -72,25 +72,5 @@ void Entity::PositionCorrection(float DeltaTime)
 	{
 		float smoothT = t * t * (3.0f - 2.0f * t);
 		mPosition = Lerp(mCorrectionStartPosition, mCorrectionEndPosition, smoothT);
-	}
-}
-
-void Entity::RecoveyIntervalMoveSync()
-{
-	const float MinInterval = 0.1f;
-	const float MaxInterval = 0.25f;
-	const float TotalRange = MaxInterval - MinInterval;
-
-	const float IncrementRatio = 0.1f;
-
-
-	if (mIntervalMoveSync >= MaxInterval) return;
-
-	float incrementStep = TotalRange * IncrementRatio;
-	mIntervalMoveSync += incrementStep;
-
-	if (mIntervalMoveSync > MaxInterval)
-	{
-		mIntervalMoveSync = MaxInterval;
 	}
 }

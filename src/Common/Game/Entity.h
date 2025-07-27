@@ -14,9 +14,6 @@ public:
 	// 공용
 	void MoveTowardsNextPath(float DeltaTime);
 
-	// 서버
-	void RecoveyIntervalMoveSync();
-
 	// 클라
 	void PositionCorrection(float DeltaTime);
 
@@ -30,9 +27,11 @@ public:
 
 	// 서버
 	bool mIsAI;
-	float mIntervalMoveSync;
-	float mLastMoveSync;
+	float mSingleLastSync;
+	float mLastNearSync;
+	float mLastFarSync;
 
+	uint32_t mNodeGroupId;
 	uint32_t mSessionId;
 	std::unordered_set<uint32_t> mViewer;	// 보고 있는 (세션 ID)
 	std::unordered_set<uint32_t> mMonitor;	// 보여지고 있는 (Entity ID)

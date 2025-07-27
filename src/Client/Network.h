@@ -60,6 +60,7 @@ private:
     uint16_t mPort;
 
     // Read, Write
+    std::array<BYTE, 1024> mReadBuffer;
     std::array<BYTE, 8192> mRecvBuffer;
     std::size_t mRecvBufferCount;
     std::unordered_set<std::unique_ptr<Message>> mTempMessages;
@@ -80,3 +81,5 @@ private:
     static constexpr size_t MAX_BUFFER_SIZE = 8192;
     static constexpr size_t READ_CHUNK_SIZE = 1024;
 };
+
+extern std::unordered_map<uint16_t, size_t> gProcessMessageCount;

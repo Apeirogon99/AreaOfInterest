@@ -1,6 +1,8 @@
 #include "World.h"
 #include "ClientMessageHandler.h"
 
+#include <iostream>
+
 #include "SDL2Utils.h"
 #include "Common/Utils/Time.h"
 
@@ -147,6 +149,23 @@ void World::Update()
 	float deltaTime = static_cast<float>((currentTime - mLastTime)) / mFrequency;
 	mLastTime = currentTime;
 
+	static float LastProcessMessageTime = 0.0f;
+
+	LastProcessMessageTime += deltaTime;
+	if (LastProcessMessageTime > 10.0f)
+	{
+		size_t total = 0;
+		std::cout << "PROCESS MESSAGE : " << std::endl;
+		for (auto iter : gProcessMessageCount)
+		{
+			std::cout << "ID : " << MessageIdToString(iter.first) << "\tCOUNT : " << iter.second << std::endl;
+			total += iter.second;
+		}
+		std::cout << "TOTAL COUNT : " << total << std::endl << std::endl;
+		gProcessMessageCount.clear();
+		LastProcessMessageTime = 0.0f;
+	}
+
 	for (auto iter = mEntitys.begin(); iter != mEntitys.end(); ++iter)
 	{
 		const uint32_t entityId = iter->first;
@@ -247,10 +266,10 @@ void World::Render()
 
 		// 가시거리 그리기
 		SDL_SetRenderDrawColor(mRenderer, 200, 0, 0, 255);
-		SDL2Utils::SDL_SetRenderDrawCircleF(mRenderer, localPosition, 50.0f);
+		SDL2Utils::SDL_SetRenderDrawCircleF(mRenderer, localPosition, 75.0f);
 		
 		SDL_SetRenderDrawColor(mRenderer, 0, 0, 200, 255);
-		SDL2Utils::SDL_SetRenderDrawCircleF(mRenderer, localPosition, 125.0f);
+		SDL2Utils::SDL_SetRenderDrawCircleF(mRenderer, localPosition, 150.0f);
 
 		// 경로가 있다면 그리기
 		{

@@ -36,6 +36,11 @@ void Handle_PKT_S2C_DISAPPEAR_ENTITY(const std::unique_ptr<World>& World, const 
 {
 	const int objectId = Protocol->ObjectId;
 
+	if (objectId == 101)
+	{
+		printf("WHY?\n");
+	}
+
 	auto otherEntityIter = World->mEntitys.find(objectId);
 	if (otherEntityIter != World->mEntitys.end())
 	{

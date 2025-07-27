@@ -29,6 +29,8 @@ cmake --build . --config Release <br>
 Entity->mIntervalMoveSync = 0.1f; <br>
 
 ## 결과 요약
+작은 원은 경로에 대한 추가적인 정보와 0.25초마다 위치를 동기화 하게 됩니다.
+큰 원은 위치에 대한 동기화를 1초 주기로 할 수 있게 하였습니다.
 
 
 ## 결과 GIF

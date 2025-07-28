@@ -4,16 +4,27 @@
 
 enum EMessageId : unsigned __int16
 {
-	None,
 	PKT_S2C_SPAWN_ENTITY,
 
 	PKT_S2C_APPEAR_ENTITY,
 	PKT_S2C_DISAPPEAR_ENTITY,
+
+	PKT_C2S_ENTITY_INFO,
+	PKT_S2C_ENTITY_INFO,
 	
 	PKT_C2S_PATH_FINDING,
 	PKT_S2C_PATH_FINDING,
 	
 	PKT_S2C_POSITION_SYNC,
+};
+
+enum EEntityInfoPriority : unsigned __int8
+{
+	ENTITY_INFO_APPEAR,
+	ENTITY_INFO_APPEARANCE,
+	ENTITY_INFO_EQUIPMENT,
+	ENTITY_INFO_STATE,
+	ENTITY_INFO_MAX,
 };
 
 const char* MessageIdToString(unsigned __int16 Id);
@@ -40,6 +51,19 @@ struct S2C_APPEAR_ENTITY
 struct S2C_DISAPPEAR_ENTITY
 {
 	int32_t		ObjectId;
+};
+
+struct C2S_ENTITY_INFO
+{
+	uint8_t InfoNumber;
+	int32_t ObjectId;
+};
+
+struct S2C_ENTITY_INFO
+{
+	uint8_t InfoNumber;
+	int32_t ObjectId;
+	int32_t Infos[10];	// 인포마다 동적으로 다르겠지만 테스트 용이기에 고정
 };
 
 struct C2S_PATH_FINDING

@@ -31,10 +31,33 @@ void Handle_PKT_C2S_PATH_FINDING(const std::unique_ptr<World>& World, const std:
 	{
 		return;
 	}
-	const std::unique_ptr<Entity>& entity = entityIter->second;
 
 	// 경로 찾기
 	{
 		World->PushTask(0, World, &World::PathFind, Session->GetSessionId(), destGridPoint.X, destGridPoint.Y);
 	}
+}
+
+void Handle_PKT_C2S_ENTITY_INFO(const std::unique_ptr<World>& World, const std::shared_ptr<Session>& Session, const C2S_ENTITY_INFO* Protocol)
+{
+
+	uint8_t nextInfoNumber = Protocol->InfoNumber + 1;
+	if (nextInfoNumber >= EEntityInfoPriority::ENTITY_INFO_MAX)
+	{
+		// 보내야 하는 데이터를 전부 보냄
+		return;
+	}
+
+#if USE_AOI
+	// 100ms 딜레이하여 전송하기
+	{
+		World->PushTask(0, World, &World::NextEntityInfo, Session->GetSessionId(), nextInfoNumber, Protocol->ObjectId);
+	}
+#else
+	// 즉시 전송하기
+	{
+		World->PushTask(0, World, &World::NextEntityInfo, Session->GetSessionId(), nextInfoNumber, Protocol->ObjectId);
+	}
+#endif
+
 }

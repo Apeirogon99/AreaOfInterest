@@ -11,7 +11,7 @@
 #include "Common/AStar/PathFinding.h"
 #include "Common/Protocol/Message.h"
 
-#define USE_AOI 0
+#define USE_AOI 1
 
 class World : public TaskQueue
 {
@@ -29,7 +29,10 @@ public:
 public:
 	void EnterWorld(uint32_t SessionId);
 	void LeaveWorld(uint32_t SessionId);
+
+public:
 	void PathFind(const uint32_t SessionId, const int DestGridX, const int DestGridY);
+	void NextEntityInfo(const uint32_t SessionId, const uint8_t InfoNumber, const int32_t OtherEntityId);
 
 public:
 	void SetDirectMessageHandler(std::function<void(const uint32_t SessionId, std::unique_ptr<Message>)> Handler)

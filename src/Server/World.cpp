@@ -168,6 +168,41 @@ void World::PathFind(const uint32_t SessionId, const int DestGridX, const int De
 	mBoradcastMessageHandler(entity->mViewer, std::move(message));
 }
 
+void World::NextEntityInfo(const uint32_t SessionId, const uint8_t NextInfoNumber, const int32_t OtherEntityId)
+{
+	uint32_t entityId = mSessionToEntity[SessionId];
+	const std::unique_ptr<Entity>& entity = mEntitys[entityId];
+
+	auto otherEntityIter = entity->mMonitor.find(OtherEntityId);
+	if (otherEntityIter == entity->mMonitor.end())
+	{
+		// 시야에서 사라짐
+		return;
+	}
+
+#if USE_AOI
+	S2C_ENTITY_INFO protocol;
+	protocol.InfoNumber = NextInfoNumber;
+	protocol.ObjectId = OtherEntityId;
+	//protocol.Infos;
+
+	auto message = MessageSerializer::Serialize(EMessageId::PKT_S2C_ENTITY_INFO, protocol);
+	mDirectMessageHandler(SessionId, std::move(message));
+#else
+	for (uint8_t number = ENTITY_INFO_APPEARANCE; number < ENTITY_INFO_MAX; ++number)
+	{
+		S2C_ENTITY_INFO protocol;
+		protocol.InfoNumber = EEntityInfoPriority::ENTITY_INFO_MAX;
+		protocol.ObjectId = OtherEntityId;
+		//protocol.Infos;
+
+		auto message = MessageSerializer::Serialize(EMessageId::PKT_S2C_ENTITY_INFO, protocol);
+		mDirectMessageHandler(SessionId, std::move(message));
+	}
+#endif
+
+}
+
 void World::Update(float DeltaTime)
 {
 	//////////////////////////////////////////////

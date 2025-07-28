@@ -4,8 +4,6 @@ const char* MessageIdToString(unsigned __int16 Id)
 {
 	switch (static_cast<EMessageId>(Id))
 	{
-	case None:
-		break;
 	case PKT_S2C_SPAWN_ENTITY:
 		return "SPAWN_ENTITY";
 		break;

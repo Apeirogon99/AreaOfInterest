@@ -7,6 +7,7 @@
 
 void Handle_INVALID(uint16_t Id, uint16_t Size, const std::vector<BYTE>& Data);
 void Handle_PKT_C2S_PATH_FINDING(const std::unique_ptr<World>& World, const std::shared_ptr<Session>& Session, const C2S_PATH_FINDING* Protocol);
+void Handle_PKT_C2S_ENTITY_INFO(const std::unique_ptr<World>& World, const std::shared_ptr<Session>& Session, const C2S_ENTITY_INFO* Protocol);
 
 class ServerMessageHandler
 {
@@ -21,6 +22,9 @@ public:
 		{
 		case EMessageId::PKT_C2S_PATH_FINDING:
 			Handle_PKT_C2S_PATH_FINDING(World, Session, MessageSerializer::Deserialize<C2S_PATH_FINDING>(data, size));
+			break;
+		case EMessageId::PKT_C2S_ENTITY_INFO:
+			Handle_PKT_C2S_ENTITY_INFO(World, Session, MessageSerializer::Deserialize<C2S_ENTITY_INFO>(data, size));
 			break;
 		default:
 			Handle_INVALID(id, size, data);

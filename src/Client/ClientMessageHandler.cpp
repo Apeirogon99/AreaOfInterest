@@ -30,6 +30,13 @@ void Handle_PKT_S2C_APPEAR_ENTITY(const std::unique_ptr<World>& World, const S2C
 	{
 		World->mEntitys.insert({ objectId, std::make_unique<Entity>(objectId, serverEntityPosition) });
 	}
+
+
+	C2S_ENTITY_INFO protocol;
+	protocol.InfoNumber = EEntityInfoPriority::ENTITY_INFO_APPEAR;
+
+	std::unique_ptr<Message> message = MessageSerializer::Serialize(EMessageId::PKT_C2S_ENTITY_INFO, protocol);
+	World->mMessageHandler(std::move(message));
 }
 
 void Handle_PKT_S2C_DISAPPEAR_ENTITY(const std::unique_ptr<World>& World, const S2C_DISAPPEAR_ENTITY* Protocol)
@@ -46,6 +53,23 @@ void Handle_PKT_S2C_DISAPPEAR_ENTITY(const std::unique_ptr<World>& World, const 
 	{
 		World->mEntitys.erase(objectId);
 	}
+}
+
+void Handle_PKT_S2C_ENTITY_INFO(const std::unique_ptr<World>& World, const S2C_ENTITY_INFO* Protocol)
+{
+	// 인포에 대한 처리
+	//Protocol->Infos;
+
+	if (Protocol->InfoNumber >= EEntityInfoPriority::ENTITY_INFO_MAX)
+	{
+		return;
+	}
+
+	C2S_ENTITY_INFO protocol;
+	protocol.InfoNumber = Protocol->InfoNumber;
+
+	std::unique_ptr<Message> message = MessageSerializer::Serialize(EMessageId::PKT_C2S_ENTITY_INFO, protocol);
+	World->mMessageHandler(std::move(message));
 }
 
 void Handle_PKT_S2C_PATH_FINDING(const std::unique_ptr<World>& World, const S2C_PATH_FINDING* Protocol)

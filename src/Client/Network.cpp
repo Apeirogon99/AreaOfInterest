@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cmath>
 
-std::unordered_map<uint16_t, size_t> gProcessMessageCount;
+std::map<uint16_t, size_t> gProcessMessageCount;
 
 Network::Network(const std::string& Host, const uint16_t Port) : 
     mIsConnected(false),

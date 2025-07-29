@@ -1,9 +1,20 @@
 #pragma once
-#include <chrono>
 
-class Time
+#pragma comment(lib, "winmm.lib")
+#include <windows.h>
+
+class TimeManager
 {
 public:
-	static __int64 GetCurrentTimeMs();
+    void Initialize();
+    long long GetServerTime();
+    float GetCurrentTimeMS();
+    float GetDeltaTime();
+
+private:
+    LARGE_INTEGER mFreq;
+    LARGE_INTEGER mStart;
+    LARGE_INTEGER mLast;
 };
 
+extern TimeManager gTimeManager;

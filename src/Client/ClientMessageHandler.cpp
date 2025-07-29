@@ -34,6 +34,7 @@ void Handle_PKT_S2C_APPEAR_ENTITY(const std::unique_ptr<World>& World, const S2C
 
 	C2S_ENTITY_INFO protocol;
 	protocol.InfoNumber = EEntityInfoPriority::ENTITY_INFO_APPEAR;
+	protocol.ObjectId = Protocol->ObjectId;
 
 	std::unique_ptr<Message> message = MessageSerializer::Serialize(EMessageId::PKT_C2S_ENTITY_INFO, protocol);
 	World->mMessageHandler(std::move(message));
@@ -67,6 +68,7 @@ void Handle_PKT_S2C_ENTITY_INFO(const std::unique_ptr<World>& World, const S2C_E
 
 	C2S_ENTITY_INFO protocol;
 	protocol.InfoNumber = Protocol->InfoNumber;
+	protocol.ObjectId = Protocol->ObjectId;
 
 	std::unique_ptr<Message> message = MessageSerializer::Serialize(EMessageId::PKT_C2S_ENTITY_INFO, protocol);
 	World->mMessageHandler(std::move(message));
@@ -87,7 +89,7 @@ void Handle_PKT_S2C_PATH_FINDING(const std::unique_ptr<World>& World, const S2C_
 	// 지연 시간만큼 예측 적용
 	{
 		long long serverTimestamp = Protocol->TimeStamp;
-		long long clientTimestamp = Time::GetCurrentTimeMs();
+		long long clientTimestamp = Protocol->TimeStamp;
 
 		float delayTimestamp = static_cast<float>(clientTimestamp - serverTimestamp) / 1000.0f;
 		clientEntity->MoveTowardsNextPath(delayTimestamp);
@@ -147,7 +149,7 @@ void Handle_PKT_S2C_POSITION_SYNC(const std::unique_ptr<World>& World, const S2C
 	// 지연 시간만큼 예측 적용
 	{
 		long long serverTimestamp = Protocol->TimeStamp;
-		long long clientTimestamp = Time::GetCurrentTimeMs();
+		long long clientTimestamp = Protocol->TimeStamp;
 
 		float delayTimestamp = static_cast<float>(clientTimestamp - serverTimestamp) / 1000.0f;
 		clientEntity->MoveTowardsNextPath(delayTimestamp);

@@ -73,20 +73,22 @@ void Game::Destroy()
 
 void Game::Run()
 {
-	long long lastTickTime = Time::GetCurrentTimeMs();
-	const long long tickIntervalMs = 33; // 20fps
+
+	const long long FRAME = 33; // 20fps;
+	gTimeManager.Initialize();
+	long long lastTickTime = gTimeManager.GetServerTime();
 
 	while (mNetwork->IsRunning() && mWorld->IsRunning())
 	{
-		long long currentTime = Time::GetCurrentTimeMs();
+		long long currentTime = gTimeManager.GetServerTime();
 
 		mWorld->ExecuteTasks(currentTime);
 
-		if (currentTime - lastTickTime >= tickIntervalMs)
+		if (currentTime - lastTickTime >= FRAME)
 		{
 			float deltaTime = (currentTime - lastTickTime) / 1000.0f;
 
-			mWorld->Update(deltaTime);
+			mWorld->Update(gTimeManager.GetDeltaTime());
 			lastTickTime = currentTime;
 		}
 

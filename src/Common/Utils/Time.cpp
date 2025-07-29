@@ -1,8 +1,34 @@
 #include "Common/Utils/Time.h"
 
-__int64 Time::GetCurrentTimeMs()
+TimeManager gTimeManager;
+
+void TimeManager::Initialize()
 {
-	auto now = std::chrono::steady_clock::now();
-	auto duration = now.time_since_epoch();
-	return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+	timeBeginPeriod(1);
+	QueryPerformanceFrequency(&mFreq);
+	QueryPerformanceCounter(&mStart);
+	mLast = mStart;
+}
+
+long long TimeManager::GetServerTime()
+{
+	LARGE_INTEGER current;
+	QueryPerformanceCounter(&current);
+	return (current.QuadPart - mStart.QuadPart) * 1000 / mFreq.QuadPart;
+}
+
+float TimeManager::GetCurrentTimeMS()
+{
+	LARGE_INTEGER current;
+	QueryPerformanceCounter(&current);
+	return (float)(current.QuadPart - mStart.QuadPart) * 1000.0f / mFreq.QuadPart;
+}
+
+float TimeManager::GetDeltaTime()
+{
+	LARGE_INTEGER current;
+	QueryPerformanceCounter(&current);
+	float delta = (float)(current.QuadPart - mLast.QuadPart) / mFreq.QuadPart;
+	mLast = current;
+	return delta;
 }

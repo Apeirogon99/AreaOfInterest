@@ -28,6 +28,7 @@ enum EEntityInfoPriority : unsigned __int8
 };
 
 const char* MessageIdToString(unsigned __int16 Id);
+const size_t MessageIdToByte(unsigned __int16 Id);
 
 struct GridPoint
 {

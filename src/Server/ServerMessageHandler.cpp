@@ -34,7 +34,8 @@ void Handle_PKT_C2S_PATH_FINDING(const std::unique_ptr<World>& World, const std:
 
 	// 경로 찾기
 	{
-		World->PushTask(0, World, &World::PathFind, Session->GetSessionId(), destGridPoint.X, destGridPoint.Y);
+		uint32_t time = static_cast<uint32_t>(gTimeManager.GetServerTime());
+		World->PushTask(time, World, &World::PathFind, Session->GetSessionId(), destGridPoint.X, destGridPoint.Y);
 	}
 }
 
@@ -51,12 +52,14 @@ void Handle_PKT_C2S_ENTITY_INFO(const std::unique_ptr<World>& World, const std::
 #if USE_AOI
 	// 100ms 딜레이하여 전송하기
 	{
-		World->PushTask(0, World, &World::NextEntityInfo, Session->GetSessionId(), nextInfoNumber, Protocol->ObjectId);
+		uint32_t time = static_cast<uint32_t>(gTimeManager.GetServerTime());
+		World->PushTask(time + 100, World, &World::NextEntityInfo, Session->GetSessionId(), nextInfoNumber, Protocol->ObjectId);
 	}
 #else
 	// 즉시 전송하기
 	{
-		World->PushTask(0, World, &World::NextEntityInfo, Session->GetSessionId(), nextInfoNumber, Protocol->ObjectId);
+		uint32_t time = static_cast<uint32_t>(gTimeManager.GetServerTime());
+		World->PushTask(time, World, &World::NextEntityInfo, Session->GetSessionId(), nextInfoNumber, Protocol->ObjectId);
 	}
 #endif
 

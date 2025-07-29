@@ -5,6 +5,7 @@
 
 #include <queue>
 #include <unordered_set>
+#include <map>
 
 #include "Common/Protocol/Message.h"
 
@@ -82,4 +83,4 @@ private:
     static constexpr size_t READ_CHUNK_SIZE = 1024;
 };
 
-extern std::unordered_map<uint16_t, size_t> gProcessMessageCount;
+extern std::map<uint16_t, size_t> gProcessMessageCount;

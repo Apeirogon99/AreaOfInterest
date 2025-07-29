@@ -29,10 +29,16 @@ bool World::Initialize()
 	// ´õ¹Ì º¿ »ý¼º
 	{
 		std::random_device rd;
+
 		std::uniform_int_distribution<int> gridX(0, mMap->mGridSizeX - 1);
 		std::uniform_int_distribution<int> gridY(0, mMap->mGridSizeY - 1);
 
-		for (int count = 1000; count < 1100; ++count)
+		//int centerX = mMap->mGridSizeX / 2;
+		//int centerY = mMap->mGridSizeX / 2;
+		//std::uniform_int_distribution<int> gridX(centerX - 5, centerX + 5);
+		//std::uniform_int_distribution<int> gridY(centerY - 5, centerY + 5);
+
+		for (int count = 1000; count < 1050; ++count)
 		{
 			int entityId = GetNextEntityId();
 			const std::unique_ptr<Node>& node = mMap->mGrid[gridX(rd)][gridY(rd)];
@@ -87,7 +93,7 @@ void World::EnterWorld(uint32_t SessionId)
 					otherEntity->mMonitor.insert(entityId);
 
 					S2C_APPEAR_ENTITY protocol;
-					protocol.TimeStamp = Time::GetCurrentTimeMs();
+					protocol.TimeStamp = gTimeManager.GetServerTime();
 					protocol.ObjectId = entityId;
 					protocol.EntityPosition = newEntity->mPosition;
 
@@ -100,7 +106,7 @@ void World::EnterWorld(uint32_t SessionId)
 					newEntity->mMonitor.insert(otherEntityId);
 
 					S2C_APPEAR_ENTITY protocol;
-					protocol.TimeStamp = Time::GetCurrentTimeMs();
+					protocol.TimeStamp = gTimeManager.GetServerTime();
 					protocol.ObjectId = otherEntityId;
 					protocol.EntityPosition = otherEntity->mPosition;
 
@@ -152,7 +158,7 @@ void World::PathFind(const uint32_t SessionId, const int DestGridX, const int De
 	std::list<Node*> paths = mPathFinder->FindPath(mMap, entity->mPosition, node->mPosition);
 
 	S2C_PATH_FINDING protocol;
-	protocol.TimeStamp = Time::GetCurrentTimeMs();
+	protocol.TimeStamp = gTimeManager.GetServerTime();
 	protocol.ObjectId = entity->mObjectId;
 	protocol.EntityPosition = entity->mPosition;
 	protocol.PathCount = 0;
@@ -232,7 +238,7 @@ void World::Update(float DeltaTime)
 
 			{
 				S2C_PATH_FINDING protocol;
-				protocol.TimeStamp = Time::GetCurrentTimeMs();
+				protocol.TimeStamp = gTimeManager.GetServerTime();
 				protocol.ObjectId = entityId;
 				protocol.EntityPosition = entityPosition;
 				protocol.PathCount = 0;
@@ -249,7 +255,7 @@ void World::Update(float DeltaTime)
 					const std::unique_ptr<Entity>& viewerEntity = mEntitys[monitorEntityId];
 					float distance = entity->mPosition.distance(viewerEntity->mPosition);
 
-					if (distance <= 50.0f)
+					if (distance <= 75.0f)
 					{
 						nearViewers.insert(viewerEntity->mSessionId);
 					}
@@ -304,7 +310,7 @@ void World::Update(float DeltaTime)
 						otherEntity->mMonitor.insert(entityId);
 
 						S2C_APPEAR_ENTITY protocol;
-						protocol.TimeStamp = Time::GetCurrentTimeMs();
+						protocol.TimeStamp = gTimeManager.GetServerTime();
 						protocol.ObjectId = entityId;
 						protocol.EntityPosition = entity->mPosition;
 
@@ -365,7 +371,7 @@ void World::Update(float DeltaTime)
 					otherEntity->mMonitor.insert(entityId);
 
 					S2C_APPEAR_ENTITY protocol;
-					protocol.TimeStamp = Time::GetCurrentTimeMs();
+					protocol.TimeStamp = gTimeManager.GetServerTime();
 					protocol.ObjectId = entityId;
 					protocol.EntityPosition = entity->mPosition;
 
@@ -412,7 +418,7 @@ void World::Update(float DeltaTime)
 		if (entity->mLastNearSync > 0.25f)
 		{
 			S2C_POSITION protocol;
-			protocol.TimeStamp = Time::GetCurrentTimeMs();
+			protocol.TimeStamp = gTimeManager.GetServerTime();
 			protocol.ObjectId = entityId;
 			protocol.EntityPosition = entity->mPosition;
 			if (!entity->mPath.empty())
@@ -427,7 +433,7 @@ void World::Update(float DeltaTime)
 				const std::unique_ptr<Entity>& viewerEntity = mEntitys[monitorEntityId];
 				float distance = entity->mPosition.distance(viewerEntity->mPosition);
 
-				if (distance <= 50.0f)
+				if (distance <= 75.0f)
 				{
 					nearViewers.insert(viewerEntity->mSessionId);
 				}
@@ -442,7 +448,7 @@ void World::Update(float DeltaTime)
 		if (entity->mLastFarSync > 1.0f)
 		{
 			S2C_POSITION protocol;
-			protocol.TimeStamp = Time::GetCurrentTimeMs();
+			protocol.TimeStamp = gTimeManager.GetServerTime();
 			protocol.ObjectId = entityId;
 			protocol.EntityPosition = entity->mPosition;
 
@@ -452,7 +458,7 @@ void World::Update(float DeltaTime)
 				const std::unique_ptr<Entity>& viewerEntity = mEntitys[monitorEntityId];
 				float distance = entity->mPosition.distance(viewerEntity->mPosition);
 
-				if (50.0f < distance && distance <= 150.0f)
+				if (75.0f < distance && distance <= 150.0f)
 				{
 					farViewers.insert(viewerEntity->mSessionId);
 				}
@@ -478,7 +484,7 @@ void World::Update(float DeltaTime)
 		if (entity->mSingleLastSync > 0.25f)
 		{
 			S2C_POSITION protocol;
-			protocol.TimeStamp = Time::GetCurrentTimeMs();
+			protocol.TimeStamp = gTimeManager.GetServerTime();
 			protocol.ObjectId = entityId;
 			protocol.EntityPosition = entity->mPosition;
 			if (!entity->mPath.empty())

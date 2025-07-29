@@ -25,7 +25,7 @@ bool World::Initialize()
 	}
 
 	mWindow = SDL_CreateWindow(
-		"Movement Sync",
+		"Area Of Interest",
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
 		600, 600,
@@ -125,7 +125,7 @@ void World::HandleEvents()
 					localEntity->mPath = mPathFinder->FindPath(mMap, localEntity->mPosition, position);
 
 					C2S_PATH_FINDING protocol;
-					protocol.TimeStamp = Time::GetCurrentTimeMs();
+					//protocol.TimeStamp 
 					protocol.DestGridPoint = { node->mGridX,  node->mGridY };
 	
 					std::unique_ptr<Message> message = MessageSerializer::Serialize<C2S_PATH_FINDING>(static_cast<uint16_t>(EMessageId::PKT_C2S_PATH_FINDING), protocol);
@@ -155,13 +155,17 @@ void World::Update()
 	if (LastProcessMessageTime > 10.0f)
 	{
 		size_t total = 0;
-		std::cout << "PROCESS MESSAGE : " << std::endl;
+		size_t bytes = 0;
+		std::cout << "(10 SECOND) PROCESS MESSAGE : " << std::endl;
 		for (auto iter : gProcessMessageCount)
 		{
-			std::cout << "ID : " << MessageIdToString(iter.first) << "\tCOUNT : " << iter.second << std::endl;
+			std::cout << "ID : " << MessageIdToString(iter.first) 
+				<< "\tCOUNT : " << iter.second 
+				<< "\tBYTE : " << iter.second * MessageIdToByte(iter.first) << std::endl;
 			total += iter.second;
+			bytes += iter.second * MessageIdToByte(iter.first);
 		}
-		std::cout << "TOTAL COUNT : " << total << std::endl << std::endl;
+		std::cout << "TOTAL COUNT : " << total << "\tBYTE : " << bytes << std::endl << std::endl;
 		gProcessMessageCount.clear();
 		LastProcessMessageTime = 0.0f;
 	}

@@ -21,7 +21,15 @@ AreaOfInterest는 MMORPG 프로젝트 제작 중 가시거리의 일부 문제�
 <img width="468" height="464" alt="image" src="https://github.com/user-attachments/assets/6162d536-2b76-41bd-baca-098f6969192e" />
 
 ## 결과 요약
-트래픽 62% 절약하면서도 품질을 유지하였습니다.
+가시영역 범위와 정보와 동기화에 따라 더 큰 효과를 볼 수 있을거라고 생각합니다.
+
+현재 상황에서는 트래픽 62% 절약하면서도 품질을 유지하였습니다.
+
+<추가>
+기존 가시영역은 모든 객체를 2중 반복문을 통해 영역에 넣었지만 간단한 그리드로 영역을 넣어 n^2에서 n의로 시간복잡도를 줄일 수 있었습니다.
+또한 사람들이 많이 몰린곳에 진입 시 한번에 많은 양의 플레이어 정보를 얻는 것이 아닌 순차적으로 정보를 전달하여 안정적인 플레이가 가능할 수 있도록 하였습니다.
+
+<img width="791" height="222" alt="image" src="https://github.com/user-attachments/assets/e1d21f3a-fd89-440e-ad69-4ee9647c77d5" />
 
 ## 결과 GIF
 ### 이중 가시영역
@@ -46,7 +54,7 @@ cmake --build . --config Release <br>
 ## 사용법
 귀찮으시겠지만 다음 줄을 찾아 수정해주시면 됩니다... <br>
 #define USE_AOI 1 = 이중 가시영역 <br>
-#define USE_AOI 1 = 단일 가시영역 <br>
+#define USE_AOI 0 = 단일 가시영역 <br>
 
 ## 참고
 [이득우의 꼭 배워야하는 게임 알고리즘](https://www.inflearn.com/course/%EA%B2%8C%EC%9E%84-%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98?srsltid=AfmBOop6dMp3k7lA91OPR5NQBIGTTnWZBma8r3uTrY9XFidST7RZB5sU) - A*를 구현하는데 참고 하였습니다.

@@ -57,5 +57,5 @@ cmake --build . --config Release <br>
 #define USE_AOI 0 = 단일 가시영역 <br>
 
 ## 참고
-[이득우의 꼭 배워야하는 게임 알고리즘](https://www.inflearn.com/course/%EA%B2%8C%EC%9E%84-%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98?srsltid=AfmBOop6dMp3k7lA91OPR5NQBIGTTnWZBma8r3uTrY9XFidST7RZB5sU) - A*를 구현하는데 참고 하였습니다.
-[프라우드넷 가시거리] - 프라우드넷의 가시거리 예제를 참고 하였습니다.
+[이득우의 꼭 배워야하는 게임 알고리즘](https://www.inflearn.com/course/%EA%B2%8C%EC%9E%84-%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98?srsltid=AfmBOop6dMp3k7lA91OPR5NQBIGTTnWZBma8r3uTrY9XFidST7RZB5sU) - A*를 구현하는데 참고 하였습니다. <br>
+[프라우드넷 가시거리] - 프라우드넷의 가시거리 예제를 참고 하였습니다. <br>
